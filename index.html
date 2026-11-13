@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌈 Мой дневник состояния и тревожности</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --purple: #7c5fa8;
+            --purple-light: #b8a0e0;
+            --blue: #4a7fb5;
+            --pink: #c96f9e;
+            --green: #5aa87a;
+            --bg-card: rgba(255, 255, 255, 0.8);
+            --border-soft: rgba(180, 160, 220, 0.4);
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #e0f0ff 0%, #f9e8ff 50%, #fff0e6 100%);
+            background-attachment: fixed;
+            color: #1e2b3c;
+            padding: 2rem 1rem 3rem;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .blob-1 { width: 350px; height: 350px; background: #b8a0e0; top: -100px; left: -100px; }
+        .blob-2 { width: 400px; height: 400px; background: #90c0f0; bottom: -120px; right: -100px; }
+        .blob-3 { width: 250px; height: 250px; background: #f0a0c0; top: 40%; left: 60%; }
+
+        .container {
+            max-width: 1150px;
+            width: 100%;
+        }
+
+        /* ===== Header ===== */
+        .header {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 1.8rem 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 12px 30px -10px rgba(70, 50, 120, 0.15);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(120deg, #3a5f8a, #7c5fa8, #c96f9e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .subhead {
+            color: #4a5f78;
+            font-size: 0.97rem;
+            border-left: 4px solid var(--purple-light);
+            padding-left: 1rem;
+        }
+
+        /* ===== Сетка карточек ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+            gap: 1.3rem;
+            margin-bottom: 1.3rem;
+        }
+
+        /* ===== Универсальная карточка ===== */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            padding: 1.5rem 1.4rem 1.3rem;
+            box-shadow: 0 8px 24px -8px rgba(70, 50, 120, 0.12);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 30px -8px rgba(90, 60, 160, 0.18);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+            color: #2c3e5c;
+            padding-bottom: 0.7rem;
+            border-bottom: 2px dashed rgba(150, 120, 200, 0.25);
+        }
+
+        .card-title .icon {
+            font-size: 1.4rem;
+            filter: drop-shadow(0 2px 4px rgba(140, 100, 200, 0.2));
+        }
+
+        /* ===== Чек-айтемы ===== */
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 0.55rem;
+            padding: 0.45rem 0.6rem;
+            cursor: pointer;
+            user-select: none;
+            border-radius: 14px;
+            transition: background 0.15s;
+            border: 1px solid transparent;
+        }
+
+        .check-item:hover {
+            background: rgba(220, 235, 255, 0.5);
+            border-color: rgba(180, 200, 240, 0.4);
+        }
+
+        .check-item input[type="checkbox"] {
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: var(--purple);
+            margin-top: 0.15rem;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .check-item input[type="checkbox"]:active { transform: scale(0.88); }
+
+        .check-item label {
+            font-size: 0.94rem;
+            color: #1f2f41;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .hint {
+            display: block;
+            font-size: 0.76rem;
+            color: #6a7f99;
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        /* ===== Шкала тревожности ===== */
+        .scale-box {
+            background: rgba(245, 250, 255, 0.7);
+            border-radius: 20px;
+            padding: 1rem 1rem 0.9rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid var(--border-soft);
+        }
+
+        .scale-label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: #2c3e5c;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .scale-bar {
+            display: flex;
+            gap: 5px;
+            height: 42px;
+            margin: 6px 0 8px;
+        }
+
+        .scale-segment {
+            flex: 1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.15s;
+            border: 3px solid transparent;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .scale-segment:hover { filter: brightness(0.96); transform: translateY(-1px); }
+
+        .scale-segment.selected {
+            border-color: #6a4c9e;
+            box-shadow: 0 4px 12px rgba(120, 80, 180, 0.3);
+            transform: translateY(-2px) scale(1.02);
+            font-weight: 700;
+        }
+
+        .scale-segment[data-level="1"] { background: linear-gradient(145deg, #d4f5d4, #b8e6b8); color: #1f6b3b; }
+        .scale-segment[data-level="2"] { background: linear-gradient(145deg, #e6f5d4, #d0e8b0); color: #4a6e2a; }
+        .scale-segment[data-level="3"] { background: linear-gradient(145deg, #fff2d9, #ffe4b0); color: #8f6200; }
+        .scale-segment[data-level="4"] { background: linear-gradient(145deg, #ffe1d9, #ffc8b8); color: #a33a1c; }
+        .scale-segment[data-level="5"] { background: linear-gradient(145deg, #ffd9d9, #ffb8b8); color: #a12b2b; }
+
+        .scale-caption {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: #5d738d;
+        }
+
+        /* ===== Кнопки ===== */
+        .btn {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(160, 140, 200, 0.4);
+            color: #5a4a8a;
+            font-weight: 600;
+            padding: 0.55rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            margin-top: 0.6rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            align-self: flex-start;
+        }
+
+        .btn:hover {
+            background: #f0eaff;
+            border-color: #b8a0e0;
+            transform: translateY(-1px);
+        }
+
+        .btn:active { transform: scale(0.96); }
+
+        /* ===== Ритуальные карточки ===== */
+        .ritual-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .ritual-card {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 18px;
+            padding: 1rem 0.8rem;
+            border: 1px solid var(--border-soft);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.18s;
+            user-select: none;
+            box-shadow: 0 2px 8px rgba(120, 100, 180, 0.04);
+        }
+
+        .ritual-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(120, 100, 180, 0.12);
+        }
+
+        .ritual-card.active {
+            background: linear-gradient(145deg, #e8dfff, #d4c4f0);
+            border-color: #9a7fc4;
+            box-shadow: 0 8px 20px rgba(120, 80, 180, 0.25);
+        }
+
+        .ritual-card.active .ritual-name { color: #3a2a6a; }
+        .ritual-card.active .check-mark { opacity: 1; }
+
+        .ritual-emoji {
+            font-size: 1.9rem;
+            display: block;
+            margin-bottom: 0.4rem;
+            filter: drop-shadow(0 2px 4px rgba(140, 100, 200, 0.2));
+        }
+
+        .ritual-name {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #2c3e5c;
+            line-height: 1.3;
+        }
+
+        .ritual-desc {
+            font-size: 0.72rem;
+            color: #6a5a8a;
+            margin-top: 4px;
+            line-height: 1.3;
+        }
+
+        .check-mark {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            color: #5a3d8a;
+        }
+
+        /* ===== Прогресс-бар ===== */
+        .progress-wrap {
+            margin-top: 0.8rem;
+            background: rgba(200, 220, 245, 0.4);
+            border-radius: 40px;
+            height: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 40px;
+            background: linear-gradient(90deg, #a8c8f0, #b8a0e0, #c96f9e);
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #5a6f88;
+            margin-top: 4px;
+        }
+
+        /* ===== Футер ===== */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: var(--bg-card);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 1rem 1.5rem;
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 8px 24px -8px rgba(70, 50, 120, 0.1);
+        }
+
+        .footer-text {
+            font-size: 0.82rem;
+            color: #5a6f88;
+        }
+
+        /* ===== РЕЗУЛЬТАТ ===== */
+        .result-section {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 12px 30px -10px rgba(70, 50, 120, 0.15);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .result-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e5c;
+        }
+
+        .btn-check {
+            background: linear-gradient(135deg, #7c5fa8, #4a7fb5);
+            color: white;
+            border: none;
+            font-weight: 700;
+            padding: 0.9rem 2rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px -6px rgba(100, 70, 180, 0.5);
+        }
+
+        .btn-check:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px -6px rgba(100, 70, 180, 0.6);
+        }
+
+        .btn-check:active { transform: scale(0.97); }
+
+        .btn-check:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== Блок результата ===== */
+        .result-box {
+            display: none;
+            margin-top: 1.5rem;
+        }
+
+        .result-box.visible { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Итоговая оценка */
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 24px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .score-display.excellent { background: linear-gradient(135deg, #d4f5d4, #b8e6b8); border: 1px solid #8fd08f; }
+        .score-display.good      { background: linear-gradient(135deg, #e6f5d4, #d0e8b0); border: 1px solid #b0d080; }
+        .score-display.moderate  { background: linear-gradient(135deg, #fff2d9, #ffe4b0); border: 1px solid #e0c070; }
+        .score-display.elevated  { background: linear-gradient(135deg, #ffe1d9, #ffc8b8); border: 1px solid #e0a090; }
+        .score-display.high      { background: linear-gradient(135deg, #ffd9d9, #ffb8b8); border: 1px solid #e09090; }
+
+        .score-circle {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.85);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .score-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+            color: #2c3e5c;
+        }
+
+        .score-max {
+            font-size: 0.75rem;
+            color: #6a7f99;
+            margin-top: 2px;
+        }
+
+        .score-info { flex: 1; min-width: 200px; }
+
+        .score-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e2b3c;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .score-desc {
+            font-size: 0.92rem;
+            color: #4a5f78;
+            line-height: 1.5;
+        }
+
+        /* Детализация */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-card {
+            background: rgba(255,255,255,0.7);
+            border-radius: 18px;
+            padding: 1rem 1.1rem;
+            border: 1px solid rgba(200, 180, 240, 0.4);
+        }
+
+        .detail-label {
+            font-size: 0.78rem;
+            color: #6a7f99;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        .detail-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e5c;
+        }
+
+        .detail-sub {
+            font-size: 0.78rem;
+            color: #6a7f99;
+            margin-top: 2px;
+        }
+
+        /* Рекомендации */
+        .recs-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #2c3e5c;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+
+        .rec-item {
+            background: rgba(255,255,255,0.75);
+            border-radius: 16px;
+            padding: 0.9rem 1.1rem;
+            border-left: 4px solid var(--purple);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.92rem;
+            color: #1f2f41;
+            line-height: 1.5;
+        }
+
+        .rec-item .rec-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .rec-item strong {
+            color: #2c3e5c;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .rec-item.priority-high { border-left-color: #e08080; background: rgba(255, 240, 240, 0.8); }
+        .rec-item.priority-med  { border-left-color: #e0c070; background: rgba(255, 250, 235, 0.8); }
+        .rec-item.priority-low  { border-left-color: #8fd08f; background: rgba(240, 255, 240, 0.8); }
+
+        .disclaimer {
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: #6a7f99;
+            background: rgba(240, 245, 255, 0.7);
+            padding: 0.8rem 1.2rem;
+            border-radius: 16px;
+            border: 1px dashed rgba(160, 140, 200, 0.5);
+        }
+
+        @media (max-width: 500px) {
+            .grid { grid-template-columns: 1fr; }
+            h1 { font-size: 1.6rem; }
+            .ritual-grid { grid-template-columns: repeat(2, 1fr); }
+            .score-circle { width: 90px; height: 90px; }
+            .score-number { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="container">
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <h1>
+            <span>🧘‍♀️</span>
+            Мой дневник состояния
+        </h1>
+        <div class="subhead">
+            Отмечай пункты, которые соответствуют твоему состоянию <strong>прямо сейчас</strong>.
+            В конце нажми <strong>«Проверить результат»</strong> — увидишь оценку по шкале и рекомендации.
+        </div>
+    </div>
+
+    <!-- ===== РЯД 1: Состояние + Тревожность + Симптомы ===== -->
+    <div class="grid">
+
+        <!-- Психологическое состояние -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🌿</span> Психологическое состояние
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="mood1" class="progress-mood">
+                <label for="mood1">Чувствую себя спокойно и устойчиво</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="mood2" class="progress-mood">
+                <label for="mood2">Есть ощущение внутренней опоры</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="mood3" class="progress-mood">
+                <label for="mood3">Мысли не скачут, могу концентрироваться</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="mood4" class="progress-mood">
+                <label for="mood4">Настроение ровное, без резких перепадов</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="mood5" class="progress-mood">
+                <label for="mood5">Чувствую интерес к делам / хобби</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="mood6" class="progress-mood">
+                <label for="mood6">Сон и аппетит в норме</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="mood7" class="progress-mood">
+                <label for="mood7">Легко общаться, нет желания изолироваться</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="mood8" class="progress-mood">
+                <label for="mood8">Тело расслаблено, нет зажимов</label>
+            </div>
+            <div class="progress-wrap">
+                <div class="progress-fill" id="moodProgress"></div>
+            </div>
+            <div class="progress-label">
+                <span>Ресурс</span>
+                <span id="moodCount">0 / 8</span>
+            </div>
+        </div>
+
+        <!-- Шкала тревожности -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📊</span> Уровень тревожности
+            </div>
+            <div class="scale-box">
+                <div class="scale-label">
+                    <span>Сейчас я чувствую тревогу:</span>
+                    <span id="selectedLevelText" style="font-weight: 700; color:#5a3d8a;">—</span>
+                </div>
+                <div class="scale-bar" id="scaleBar">
+                    <div class="scale-segment" data-level="1" onclick="selectLevel(1)">1</div>
+                    <div class="scale-segment" data-level="2" onclick="selectLevel(2)">2</div>
+                    <div class="scale-segment" data-level="3" onclick="selectLevel(3)">3</div>
+                    <div class="scale-segment" data-level="4" onclick="selectLevel(4)">4</div>
+                    <div class="scale-segment" data-level="5" onclick="selectLevel(5)">5</div>
+                </div>
+                <div class="scale-caption">
+                    <span>😌 минимальная</span>
+                    <span>😟 умеренная</span>
+                    <span>😰 высокая</span>
+                </div>
+                <button class="btn" onclick="resetScale()">↺ Сбросить шкалу</button>
+            </div>
+            <div style="font-size:0.8rem; color:#6a7f99; margin-top:0.3rem;">
+                💡 Нажми на цифру, чтобы отметить текущий уровень.
+            </div>
+        </div>
+
+        <!-- Признаки тревоги -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">💓</span> Признаки тревоги
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="anx1">
+                <label for="anx1">Учащённое сердцебиение</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="anx2">
+                <label for="anx2">Напряжение в мышцах (шея, спина)</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="anx3">
+                <label for="anx3">Потливость или дрожь</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="anx4">
+                <label for="anx4">«Ком в горле» или затруднённое дыхание</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="anx5">
+                <label for="anx5">Трудности с концентрацией, «туман»</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="anx6">
+                <label for="anx6">Раздражительность или нервозность</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="anx7">
+                <label for="anx7">Навязчивые мысли, опасения</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="anx8">
+                <label for="anx8">Желание избегать ситуаций / людей</label>
+            </div>
+            <div class="progress-wrap">
+                <div class="progress-fill" id="anxProgress" style="background: linear-gradient(90deg, #f0c0c0, #e08080);"></div>
+            </div>
+            <div class="progress-label">
+                <span>Симптомы</span>
+                <span id="anxCount">0 / 8</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== РЯД 2: Быстрые ритуалы + Ритуалы на день ===== -->
+    <div class="grid">
+
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">⚡</span> Быстрые ритуалы «здесь и сейчас»
+            </div>
+            <div class="ritual-grid">
+                <div class="ritual-card" data-ritual="r1" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🫁</span>
+                    <div class="ritual-name">Дыхание 4-7-8</div>
+                    <div class="ritual-desc">вдох 4 · пауза 7 · выдох 8</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="r2" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🔢</span>
+                    <div class="ritual-name">Заземление 5-4-3-2-1</div>
+                    <div class="ritual-desc">5 вещей · 4 звука · 3 ощущения</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="r3" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🟦</span>
+                    <div class="ritual-name">Квадратное дыхание</div>
+                    <div class="ritual-desc">4-4-4-4 · 5 циклов</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="r4" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">💪</span>
+                    <div class="ritual-name">Прогрессивная релаксация</div>
+                    <div class="ritual-desc">напряги и расслабь мышцы</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="r5" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🧊</span>
+                    <div class="ritual-name">Холодная вода</div>
+                    <div class="ritual-desc">на запястья, 30 секунд</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="r6" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🤗</span>
+                    <div class="ritual-name">Обнять себя</div>
+                    <div class="ritual-desc">похлопай по плечам 20 раз</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="r7" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">📝</span>
+                    <div class="ritual-name">Выписать мысли</div>
+                    <div class="ritual-desc">на бумагу и порвать</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="r8" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">📞</span>
+                    <div class="ritual-name">Позвонить близкому</div>
+                    <div class="ritual-desc">голос, а не переписка</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🌤️</span> Ритуалы на день
+            </div>
+            <div class="ritual-grid">
+                <div class="ritual-card" data-ritual="d1" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🚶‍♀️</span>
+                    <div class="ritual-name">Утренняя прогулка</div>
+                    <div class="ritual-desc">15–20 минут на воздухе</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="d2" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">📔</span>
+                    <div class="ritual-name">Дневник благодарности</div>
+                    <div class="ritual-desc">3 вещи, за которые благодарна</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="d3" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🛁</span>
+                    <div class="ritual-name">Тёплый душ / ванна</div>
+                    <div class="ritual-desc">с солью или маслами</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="d4" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🍵</span>
+                    <div class="ritual-name">Чай без кофеина</div>
+                    <div class="ritual-desc">ромашка, мята, мелисса</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="d5" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🚫☕</span>
+                    <div class="ritual-name">Снизить кофеин</div>
+                    <div class="ritual-desc">и сахар на сегодня</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="d6" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🧘</span>
+                    <div class="ritual-name">Растяжка</div>
+                    <div class="ritual-desc">10 наклонов, шея, спина</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="d7" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">📵</span>
+                    <div class="ritual-name">Цифровой детокс</div>
+                    <div class="ritual-desc">убрать телефон на 30 минут</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="d8" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🎵</span>
+                    <div class="ritual-name">Музыка / звуки природы</div>
+                    <div class="ritual-desc">10–15 минут в наушниках</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="d9" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🎨</span>
+                    <div class="ritual-name">Арт-терапия</div>
+                    <div class="ritual-desc">рисование, раскраски, лепка</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="d10" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🧹</span>
+                    <div class="ritual-name">Порядок на столе</div>
+                    <div class="ritual-desc">внешний порядок = внутренний</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== РЯД 3: Дыхательные практики ===== -->
+    <div class="grid">
+        <div class="card" style="grid-column: 1 / -1;">
+            <div class="card-title">
+                <span class="icon">🌬️</span> Дыхательные практики — нажми на карточку, чтобы отметить
+            </div>
+            <div class="ritual-grid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
+                <div class="ritual-card" data-ritual="b1" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🫁</span>
+                    <div class="ritual-name">Дыхание «4-7-8»</div>
+                    <div class="ritual-desc">Вдох 4 → задержка 7 → выдох 8. Повтори 4 раза.</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="b2" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🟦</span>
+                    <div class="ritual-name">Квадратное дыхание</div>
+                    <div class="ritual-desc">Вдох 4 – пауза 4 – выдох 4 – пауза 4. 5 циклов.</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="b3" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🌊</span>
+                    <div class="ritual-name">Дыхание «Океан»</div>
+                    <div class="ritual-desc">Глубокий вдох носом, шумный выдох ртом. 10 раз.</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+                <div class="ritual-card" data-ritual="b4" onclick="toggleRitual(this)">
+                    <span class="ritual-emoji">🍃</span>
+                    <div class="ritual-name">Выдох длиннее вдоха</div>
+                    <div class="ritual-desc">Вдох 3 сек, выдох 6 сек. 10 циклов.</div>
+                    <span class="check-mark">✓ выполнено</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== БЛОК ПРОВЕРКИ РЕЗУЛЬТАТА ===== -->
+    <div class="result-section">
+        <div class="result-header">
+            <h2>🎯 Проверить моё состояние</h2>
+            <button class="btn-check" id="checkBtn" onclick="calculateResult()">
+                ✨ Проверить результат
+            </button>
+        </div>
+
+        <div id="resultBox" class="result-box">
+            <!-- Итоговая оценка -->
+            <div class="score-display" id="scoreDisplay">
+                <div class="score-circle">
+                    <div class="score-number" id="scoreNumber">—</div>
+                    <div class="score-max">из 100</div>
+                </div>
+                <div class="score-info">
+                    <div class="score-title" id="scoreTitle">—</div>
+                    <div class="score-desc" id="scoreDesc">—</div>
+                </div>
+            </div>
+
+            <!-- Детализация -->
+            <div class="details-grid">
+                <div class="detail-card">
+                    <div class="detail-label">🌿 Ресурс</div>
+                    <div class="detail-value" id="detailMood">0 / 8</div>
+                    <div class="detail-sub">психологическая устойчивость</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">📊 Тревожность</div>
+                    <div class="detail-value" id="detailAnxLevel">—</div>
+                    <div class="detail-sub">по шкале 1–5</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">💓 Симптомы</div>
+                    <div class="detail-value" id="detailSymptoms">0 / 8</div>
+                    <div class="detail-sub">физические / эмоциональные</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">✅ Ритуалы</div>
+                    <div class="detail-value" id="detailRituals">0</div>
+                    <div class="detail-sub">выполнено действий</div>
+                </div>
+            </div>
+
+            <!-- Рекомендации -->
+            <div class="recs-title">
+                <span>💡</span> Персональные рекомендации
+            </div>
+            <div class="recs-list" id="recsList"></div>
+
+            <div class="disclaimer">
+                ⚠️ Это не медицинский диагноз. Шкала — ориентировочная, для самонаблюдения.
+                Если тревога мешает жить — обратись к психологу или психотерапевту.
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ФУТЕР ===== -->
+    <div class="footer">
+        <div class="footer-text">
+            🌸 Все данные сохраняются в твоём браузере. Никто, кроме тебя, их не видит.
+        </div>
+        <button class="btn" onclick="resetAll()" style="margin-top:0;">
+            🧹 Очистить всё
+        </button>
+    </div>
+
+</div>
+
+<script>
+    const STORAGE_KEY = 'myAnxietyDiary_v1';
+    let currentLevel = null;
+
+    // ===== Шкала =====
+    function selectLevel(level) {
+        currentLevel = level;
+        document.querySelectorAll('.scale-segment').forEach(s => s.classList.remove('selected'));
+        const seg = document.querySelector(`.scale-segment[data-level="${level}"]`);
+        if (seg) seg.classList.add('selected');
+        const names = {1:'1 — минимальная', 2:'2 — низкая', 3:'3 — умеренная', 4:'4 — высокая', 5:'5 — очень высокая'};
+        document.getElementById('selectedLevelText').innerText = names[level] || '—';
+        saveState();
+    }
+
+    function resetScale() {
+        currentLevel = null;
+        document.querySelectorAll('.scale-segment').forEach(s => s.classList.remove('selected'));
+        document.getElementById('selectedLevelText').innerText = '—';
+        saveState();
+    }
+
+    // ===== Ритуалы =====
+    function toggleRitual(card) {
+        card.classList.toggle('active');
+        saveState();
+    }
+
+    // ===== Прогресс =====
+    function updateMoodProgress() {
+        const checkboxes = document.querySelectorAll('.progress-mood');
+        const total = checkboxes.length;
+        const checked = Array.from(checkboxes).filter(c => c.checked).length;
+        document.getElementById('moodProgress').style.width = (checked / total) * 100 + '%';
+        document.getElementById('moodCount').textContent = `${checked} / ${total}`;
+    }
+
+    function updateAnxProgress() {
+        const ids = ['anx1','anx2','anx3','anx4','anx5','anx6','anx7','anx8'];
+        const checked = ids.filter(id => document.getElementById(id)?.checked).length;
+        document.getElementById('anxProgress').style.width = (checked / ids.length) * 100 + '%';
+        document.getElementById('anxCount').textContent = `${checked} / ${ids.length}`;
+    }
+
+    // ===== СОХРАНЕНИЕ =====
+    function saveState() {
+        const state = { checkboxes: {}, rituals: [], level: currentLevel };
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            if (cb.id) state.checkboxes[cb.id] = cb.checked;
+        });
+        document.querySelectorAll('.ritual-card.active').forEach(card => {
+            state.rituals.push(card.getAttribute('data-ritual'));
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return;
+        try {
+            const state = JSON.parse(saved);
+            if (state.checkboxes) {
+                for (const [id, checked] of Object.entries(state.checkboxes)) {
+                    const cb = document.getElementById(id);
+                    if (cb) cb.checked = checked;
+                }
+            }
+            if (state.rituals && Array.isArray(state.rituals)) {
+                state.rituals.forEach(ritualId => {
+                    const card = document.querySelector(`.ritual-card[data-ritual="${ritualId}"]`);
+                    if (card) card.classList.add('active');
+                });
+            }
+            if (state.level) selectLevel(state.level);
+        } catch (e) { console.warn(e); }
+    }
+
+    function resetAll() {
+        if (!confirm('Точно очистить все отметки?')) return;
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.ritual-card').forEach(card => card.classList.remove('active'));
+        resetScale();
+        updateMoodProgress();
+        updateAnxProgress();
+        localStorage.removeItem(STORAGE_KEY);
+        document.getElementById('resultBox').classList.remove('visible');
+    }
+
+    // ===== РАСЧЁТ РЕЗУЛЬТАТА =====
+    function calculateResult() {
+        // 1. Собираем данные
+        const moodIds = ['mood1','mood2','mood3','mood4','mood5','mood6','mood7','mood8'];
+        const anxIds = ['anx1','anx2','anx3','anx4','anx5','anx6','anx7','anx8'];
+
+        const moodChecked = moodIds.filter(id => document.getElementById(id)?.checked).length;
+        const anxChecked = anxIds.filter(id => document.getElementById(id)?.checked).length;
+        const ritualsDone = document.querySelectorAll('.ritual-card.active').length;
+        const anxLevel = currentLevel; // 1–5 или null
+
+        // 2. Проверка: хотя бы что-то должно быть отмечено
+        if (moodChecked === 0 && anxChecked === 0 && anxLevel === null && ritualsDone === 0) {
+            alert('Отметь хотя бы несколько пунктов, чтобы увидеть результат 🌸');
+            return;
+        }
+
+        // 3. Расчёт баллов (0–100)
+        // Ресурс: 0–40 баллов (8 чекбоксов × 5)
+        const moodScore = (moodChecked / 8) * 40;
+
+        // Симптомы тревоги: 0–30 баллов (8 симптомов × 3.75, инвертировано — меньше симптомов = больше баллов)
+        const symptomScore = ((8 - anxChecked) / 8) * 30;
+
+        // Уровень тревожности: 0–20 баллов (5 уровней, инвертировано)
+        let levelScore = 0;
+        if (anxLevel !== null) {
+            levelScore = ((5 - anxLevel) / 4) * 20;
+        } else {
+            // Если не выбрано — нейтрально 10 баллов (не наказываем)
+            levelScore = 10;
+        }
+
+        // Ритуалы: 0–10 баллов (за каждый выполненный +1, максимум 10)
+        const ritualScore = Math.min(ritualsDone, 10);
+
+        const totalScore = Math.round(moodScore + symptomScore + levelScore + ritualScore);
+
+        // 4. Определяем категорию
+        let category, title, desc, emoji;
+        if (totalScore >= 80) {
+            category = 'excellent';
+            title = 'Отличное состояние 🌟';
+            desc = 'Ты в ресурсе! Психика устойчива, тревога под контролем. Продолжай заботиться о себе — ты молодец.';
+        } else if (totalScore >= 60) {
+            category = 'good';
+            title = 'Хорошее состояние 🌿';
+            desc = 'В целом всё стабильно. Есть небольшие зоны роста, но ты справляешься. Поддерживай баланс.';
+        } else if (totalScore >= 40) {
+            category = 'moderate';
+            title = 'Умеренное напряжение ⚖️';
+            desc = 'Есть признаки усталости или тревоги. Стоит уделить себе время и применить практики расслабления.';
+        } else if (totalScore >= 20) {
+            category = 'elevated';
+            title = 'Повышенная тревожность 🌧️';
+            desc = 'Твоё состояние требует внимания. Много симптомов тревоги или мало ресурса. Начни с простых ритуалов сегодня.';
+        } else {
+            category = 'high';
+            title = 'Высокий уровень тревоги 🔥';
+            desc = 'Сейчас тяжело. Важно не оставаться одной — сделай что-то из быстрых ритуалов и подумай о поддержке специалиста.';
+        }
+
+        // 5. Показываем блок
+        const resultBox = document.getElementById('resultBox');
+        resultBox.classList.add('visible');
+
+        // 6. Заполняем оценку
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        scoreDisplay.className = 'score-display ' + category;
+        document.getElementById('scoreNumber').textContent = totalScore;
+        document.getElementById('scoreTitle').textContent = title;
+        document.getElementById('scoreDesc').textContent = desc;
+
+        // 7. Заполняем детализацию
+        document.getElementById('detailMood').textContent = `${moodChecked} / 8`;
+        document.getElementById('detailAnxLevel').textContent = anxLevel !== null ? `${anxLevel} / 5` : 'не указан';
+        document.getElementById('detailSymptoms').textContent = `${anxChecked} / 8`;
+        document.getElementById('detailRituals').textContent = ritualsDone;
+
+        // 8. Генерируем рекомендации
+        generateRecommendations({
+            totalScore, moodChecked, anxChecked, anxLevel, ritualsDone, category
+        });
+
+        // 9. Прокручиваем к результату
+        resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ===== ГЕНЕРАЦИЯ РЕКОМЕНДАЦИЙ =====
+    function generateRecommendations(data) {
+        const { totalScore, moodChecked, anxChecked, anxLevel, ritualsDone, category } = data;
+        const recs = [];
+
+        // Приоритет 1: Критические рекомендации
+        if (category === 'high' || (anxLevel !== null && anxLevel >= 4)) {
+            recs.push({
+                priority: 'high',
+                icon: '🆘',
+                title: 'Сделай дыхательное упражнение прямо сейчас',
+                text: 'Техника 4-7-8 или квадратное дыхание помогут снизить физическую тревогу за 2–3 минуты. Это самое быстрое, что можно сделать.'
+            });
+        }
+
+        if (category === 'high' || anxChecked >= 6) {
+            recs.push({
+                priority: 'high',
+                icon: '💬',
+                title: 'Не оставайся наедине с тревогой',
+                text: 'Позвони близкому человеку или напиши. Проговаривание вслух снижает интенсивность тревоги. Если состояние не улучшается несколько дней — обратись к психологу.'
+            });
+        }
+
+        // Приоритет 2: По симптомам
+        if (anxChecked >= 4) {
+            recs.push({
+                priority: 'med',
+                icon: '🧊',
+                title: 'Сними физическое напряжение',
+                text: 'Холодная вода на запястья, прогрессивная релаксация или растяжка помогут телу «выйти» из режима тревоги. Тело и психика связаны.'
+            });
+        }
+
+        // Приоритет 3: По ресурсу
+        if (moodChecked <= 3) {
+            recs.push({
+                priority: 'med',
+                icon: '🌱',
+                title: 'Восстанови базовый ресурс',
+                text: 'Сон, еда, вода, прогулка — фундамент. Сегодня стоит лечь пораньше и выйти на 15 минут на улицу. Без этого любые практики работают хуже.'
+            });
+        }
+
+        // Приоритет 4: По ритуалам
+        if (ritualsDone === 0) {
+            recs.push({
+                priority: 'med',
+                icon: '🎯',
+                title: 'Выбери 1–2 ритуала и выполни сегодня',
+                text: 'Не нужно делать всё сразу. Выбери одно самое простое действие (например, стакан воды и 10 медленных вдохов) — и сделай его. Маленький шаг важнее большого плана.'
+            });
+        } else if (ritualsDone >= 5) {
+            recs.push({
+                priority: 'low',
+                icon: '💚',
+                title: 'Ты уже много сделала для себя',
+                text: 'Отличная работа! Продолжай в том же духе. Замечай, какие именно практики помогают тебе больше всего — это твой личный «набор скорой помощи».'
+            });
+        }
+
+        // Приоритет 5: Общие рекомендации по категории
+        if (category === 'excellent' || category === 'good') {
+            recs.push({
+                priority: 'low',
+                icon: '📔',
+                title: 'Зафиксируй, что помогло',
+                text: 'Запиши в дневник, какие практики сегодня поддерживали тебя. В будущем это поможет быстрее возвращаться в ресурсное состояние.'
+            });
+        }
+
+        if (category === 'moderate' || category === 'elevated') {
+            recs.push({
+                priority: 'med',
+                icon: '🧘',
+                title: 'Сделай паузу на 10 минут',
+                text: 'Отложи дела, закрой глаза, подыши. Тревога часто растёт от перегрузки. Короткая пауза сейчас — профилактика сильного стресса вечером.'
+            });
+        }
+
+        // Приоритет 6: Долгосрочная
+        if (category === 'high' || category === 'elevated') {
+            recs.push({
+                priority: 'high',
+                icon: '👩‍⚕️',
+                title: 'Подумай о профессиональной поддержке',
+                text: 'Если тревога длится больше 2 недель или мешает сну и работе — это повод обратиться к психологу. Это не признак слабости, а забота о себе.'
+            });
+        }
+
+        // Приоритет 7: Всегда напоминание
+        recs.push({
+            priority: 'low',
+            icon: '💧',
+            title: 'Проверь базу: вода, еда, сон',
+            text: 'Часто тревога усиливается от банального обезвоживания, голода или недосыпа. Выпей стакан воды прямо сейчас — это займёт 5 секунд.'
+        });
+
+        // Рендер
+        const recsList = document.getElementById('recsList');
+        recsList.innerHTML = recs.map(r => `
+            <div class="rec-item priority-${r.priority}">
+                <span class="rec-icon">${r.icon}</span>
+                <div>
+                    <strong>${r.title}</strong>
+                    ${r.text}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ===== ИНИЦИАЛИЗАЦИЯ =====
+    document.addEventListener('DOMContentLoaded', () => {
+        loadState();
+
+        document.querySelectorAll('.progress-mood').forEach(cb => {
+            cb.addEventListener('change', () => { updateMoodProgress(); saveState(); });
+        });
+
+        ['anx1','anx2','anx3','anx4','anx5','anx6','anx7','anx8'].forEach(id => {
+            const cb = document.getElementById(id);
+            if (cb) cb.addEventListener('change', () => { updateAnxProgress(); saveState(); });
+        });
+
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', saveState);
+        });
+
+        updateMoodProgress();
+        updateAnxProgress();
+
+        if (!currentLevel) document.getElementById('selectedLevelText').innerText = '—';
+    });
+</script>
+
+</body>
+</html>
